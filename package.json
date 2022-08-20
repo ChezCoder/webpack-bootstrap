@@ -11,7 +11,7 @@
   },
   "name": "webpack-bootstrap",
   "description": "webpack canvas boostrap starter",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "main": "",
   "directories": {
     "test": "tests"
