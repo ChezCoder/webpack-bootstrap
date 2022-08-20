@@ -165,7 +165,7 @@ export namespace Random {
     }
 }
 
-export namespace Utils {
+export namespace TextHelper {
     export function measureTextMetrics(ctx: CanvasRenderingContext2D, text: string, fontStyle: string): TextMetrics {
         const oldFont = ctx.font;
         ctx.font = fontStyle;
@@ -178,11 +178,24 @@ export namespace Utils {
         const metrics = measureTextMetrics(ctx, text, fontStyle);
         return metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent;
     }
-
+    
     export function measureTextWidth(ctx: CanvasRenderingContext2D, text: string, fontStyle: string): number {
         return measureTextMetrics(ctx, text, fontStyle).width;
     }
 
+    export function writeCenteredTextAt(ctx: CanvasRenderingContext2D, text: string, position: Vector2, color: string = "black", fontStyle: string = "30px Arial") {
+        const width = measureTextWidth(ctx, text, fontStyle);
+        const height = measureTextHeight(ctx, text, fontStyle);
+
+        ctx.beginPath();
+        ctx.fillStyle = color;
+        ctx.font = fontStyle;
+        ctx.fillText(text, position.x - width / 2, position.y + height / 2);
+        ctx.closePath();
+    }
+}
+
+export namespace Utils {
     export function rbgToHex(red: number, blue: number, green: number): string {
         return `#${prefixSpacing(red.toString(16), "0", 2)}${prefixSpacing(blue.toString(16), "0", 2)}${prefixSpacing(green.toString(16), "0", 2)}`;
     }
@@ -197,15 +210,16 @@ export namespace Utils {
 
     export function wrapClamp(n: number, min: number = 0, max: number = 1): number {
         const clamped = clamp(n, min, max);
+        min--;
+        max++;
 
         if (clamped === n) {
             return clamped;
         } else {
             const difference = clamped - n;
-            console.log(difference);
             if (difference < 0)
-                return min + difference;
-            return max + difference;
+                return wrapClamp(min - difference, min, max);
+            return wrapClamp(max - difference, min, max);
         }
     }
 
@@ -377,5 +391,31 @@ export namespace LerpUtils {
         export const EaseOut: LerpFunction = x => EaseIn(Reverse(x));
         export const EaseInOut: LerpFunction = x => LerpUtils.lerp(EaseIn(x), EaseOut(x), x);
         export const Spike: LerpFunction = x => x <= 0.5 ? EaseIn(x / 0.5) : EaseIn(Reverse(x) / 0.5);
+    }
+}
+
+export namespace Resource {
+    const resourceMap: Map<string, HTMLImageElement> = new Map();
+
+    export function load(src: string | URL): Promise<HTMLImageElement> {
+        return new Promise(function(res, rej) {
+            if (src instanceof URL) src = src.href;
+
+            const image = new Image();
+            image.onload = () => res(image);
+            image.onerror = err => rej(err);
+            image.onabort = image.onerror;
+            image.src = src;
+        });
+    }
+    
+    export function loadAndSave(name: string, src: string | URL): Promise<void> {
+        return new Promise(function(res, rej) {
+            load(src).then(img => res(void resourceMap.set(name, img))).catch(rej);
+        });
+    }
+
+    export function get(name: string): HTMLImageElement | null {
+        return resourceMap.get(name) || null;
     }
 }

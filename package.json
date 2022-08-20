@@ -1,4 +1,7 @@
 {
+  "jest": {
+
+  },
   "devDependencies": {
     "@types/jest": "^28.1.7",
     "@types/jquery": "^3.5.14",
@@ -11,7 +14,7 @@
   },
   "name": "webpack-bootstrap",
   "description": "webpack canvas boostrap starter",
-  "version": "1.0.3",
+  "version": "1.0.0",
   "main": "",
   "directories": {
     "test": "tests"
@@ -364,7 +367,7 @@
     "yargs": "^17.5.1"
   },
   "scripts": {
-    "test": "jest",
+    "test": "jest ./tests",
     "serve": "webpack serve"
   },
   "repository": {
