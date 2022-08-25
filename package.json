@@ -366,7 +366,8 @@
   },
   "scripts": {
     "test": "jest ./tests",
-    "serve": "webpack serve"
+    "serve": "webpack serve",
+    "build": "webpack build"
   },
   "repository": {
     "type": "git",
