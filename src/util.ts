@@ -1,3 +1,5 @@
+import App, { DrawOptions } from "./App";
+
 export type WeightMap = {[key: string]: number};
 
 export interface SimpleVector2 {
@@ -166,32 +168,33 @@ export namespace Random {
 }
 
 export namespace TextHelper {
-    export function measureTextMetrics(ctx: CanvasRenderingContext2D, text: string, fontStyle: string): TextMetrics {
+    export function measureTextMetrics(ctx: CanvasRenderingContext2D, text: string, font: string): TextMetrics {
         const oldFont = ctx.font;
-        ctx.font = fontStyle;
+        ctx.font = font;
         const textm = ctx.measureText(text);
         ctx.font = oldFont;
         return textm;
     }
     
-    export function measureTextHeight(ctx: CanvasRenderingContext2D, text: string, fontStyle: string): number {
-        const metrics = measureTextMetrics(ctx, text, fontStyle);
+    export function measureTextHeight(ctx: CanvasRenderingContext2D, text: string, font: string): number {
+        const metrics = measureTextMetrics(ctx, text, font);
         return metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent;
     }
     
-    export function measureTextWidth(ctx: CanvasRenderingContext2D, text: string, fontStyle: string): number {
-        return measureTextMetrics(ctx, text, fontStyle).width;
+    export function measureTextWidth(ctx: CanvasRenderingContext2D, text: string, font: string): number {
+        return measureTextMetrics(ctx, text, font).width;
     }
 
-    export function writeCenteredTextAt(ctx: CanvasRenderingContext2D, text: string, position: Vector2, color: string = "black", fontStyle: string = "30px Arial") {
-        const width = measureTextWidth(ctx, text, fontStyle);
-        const height = measureTextHeight(ctx, text, fontStyle);
+    export function writeCenteredTextAt(app: App, text: string, options: Partial<DrawOptions>, font: string = app.zoom * 30 + "px Arial") {
+        const width = measureTextWidth(app.ctx, text, font);
+        const height = measureTextHeight(app.ctx, text, font);
 
-        ctx.beginPath();
-        ctx.fillStyle = color;
-        ctx.font = fontStyle;
-        ctx.fillText(text, position.x - width / 2, position.y + height / 2);
-        ctx.closePath();
+        options.draw = function(ctx) {
+            ctx.font = font;
+            ctx.fillText(text, -width / 2, height / 2);
+        };
+
+        app.draw(options as DrawOptions);
     }
 }
 

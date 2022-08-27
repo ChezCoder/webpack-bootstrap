@@ -1,5 +1,5 @@
 import App from "./App";
-import { Vector2 } from "./util";
+import { Vector2 } from "./Util";
 
 export class InputDriver {
     public mousePos: Vector2 = new Vector2(0, 0);
@@ -9,10 +9,10 @@ export class InputDriver {
     public keyPress: string = "";
     public app: App;
     
-    private mouseClickFrames = 0;
-    private keyPressFrames = 0;
-    private keyPressEnable = true;
-    private lastKeyPress: string = "";
+    private _mouseClickFrames = 0;
+    private _keyPressFrames = 0;
+    private _keyPressEnable = true;
+    private _lastKeyPress: string = "";
 
     constructor(app: App) {
         this.app = app;
@@ -26,7 +26,7 @@ export class InputDriver {
         
         $(window).on("mousedown", function() {
             driver.mouseDown = true;
-            driver.mouseClickFrames = 1;
+            driver._mouseClickFrames = 1;
         });
         
         $(window).on("mouseup", function() {
@@ -35,22 +35,22 @@ export class InputDriver {
         
         $(window).on("keydown", function(e) {
             !driver.keysDown.includes(e.key) ? driver.keysDown.push(e.key) : "";
-            driver.keyPress = (driver.keyPressEnable || (e.key != driver.lastKeyPress)) ? e.key : "";
-            driver.lastKeyPress = e.key;
-            driver.keyPressFrames = 1;
-            driver.keyPressEnable = false;
+            driver.keyPress = (driver._keyPressEnable || (e.key != driver._lastKeyPress)) ? e.key : "";
+            driver._lastKeyPress = e.key;
+            driver._keyPressFrames = 1;
+            driver._keyPressEnable = false;
         });
         
         $(window).on("keyup", function(e) {
             driver.keysDown.includes(e.key) ? driver.keysDown.splice(driver.keysDown.indexOf(e.key), 1) : "";
-            driver.keyPressEnable = true;
+            driver._keyPressEnable = true;
         });
     }
 
     public step() {
-        this.mouseClick = !!this.mouseClickFrames;
-        this.keyPress = !!this.keyPressFrames ? this.keyPress : "";
-        this.mouseClickFrames = Math.max(0, this.mouseClickFrames - 1);
-        this.keyPressFrames = Math.max(0, this.keyPressFrames - 1);
+        this.mouseClick = !!this._mouseClickFrames;
+        this.keyPress = !!this._keyPressFrames ? this.keyPress : "";
+        this._mouseClickFrames = Math.max(0, this._mouseClickFrames - 1);
+        this._keyPressFrames = Math.max(0, this._keyPressFrames - 1);
     }
 }

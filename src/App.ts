@@ -1,6 +1,6 @@
 import Scene from "./Scene";
 import { InputDriver } from "./UserInput";
-import { Vector2 } from "./util";
+import { Vector2 } from "./Util";
 
 export interface DrawOptions {
     draw: (ctx: CanvasRenderingContext2D) => void
@@ -50,7 +50,10 @@ export default class App {
         this.ctx.save();
         this.ctx.beginPath();
 
-        if (options.origin) this.ctx.translate(options.origin.x, options.origin.y);
+        if (options.origin) {
+            const offset = this.getVisualPosition(options.origin);
+            this.ctx.translate(offset.x, offset.y);
+        }
         
         this.ctx.strokeStyle = options.strokeStyle || "#000000";
         this.ctx.fillStyle = options.fillStyle || "#000000";
@@ -71,8 +74,8 @@ export default class App {
     public getVisualPosition(position: Vector2): Vector2 {
         const result = position.clone();
         result.add(this.cameraOffset);
-        result.x /= this.zoom;
-        result.y /= this.zoom;
+        result.x *= this.zoom;
+        result.y *= this.zoom;
         return result;
     }
 

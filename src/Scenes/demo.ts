@@ -1,5 +1,5 @@
 import Scene from "../Scene";
-import { Angle, Random, TextHelper, Utils, Vector2 } from "../util";
+import { Angle, Random, TextHelper, Utils } from "../Util";
 
 export default class extends Scene {
     private rotation1: number = Random.random(0, 180);
@@ -25,7 +25,7 @@ export default class extends Scene {
             "origin": this.app.center,
             "rotation": Angle.toRadians(this.rotation1),
             "draw": ctx => {
-                ctx.fillRect(-this.squareDims1 / 2, -this.squareDims1 / 2, this.squareDims1, this.squareDims1);
+                ctx.fillRect(-this.squareDims1 * this.app.zoom / 2, -this.squareDims1 * this.app.zoom / 2, this.squareDims1 * this.app.zoom, this.squareDims1 * this.app.zoom);
             }
         });
 
@@ -34,8 +34,7 @@ export default class extends Scene {
             "origin": this.app.center,
             "rotation": Angle.toRadians(this.rotation2),
             "draw": ctx => {
-                // ctx.fillRect(this.app.width / 2 - this.squareDims2 / 2, this.app.height / 2 - this.squareDims2 / 2, this.squareDims2, this.squareDims2);
-                ctx.fillRect(0, 0, this.squareDims2, this.squareDims2);
+                ctx.fillRect(0, 0, this.squareDims2 * this.app.zoom, this.squareDims2 * this.app.zoom);
             }
         });
 
@@ -44,10 +43,13 @@ export default class extends Scene {
             "origin": this.app.center,
             "rotation": Angle.toRadians(this.circleRotation),
             "draw": ctx => {
-                ctx.arc(-150, 0, 20, 0, Math.PI * 2);
+                ctx.arc(-150 * this.app.zoom, 0, 20 * this.app.zoom, 0, Math.PI * 2);
             }
         });
 
-        TextHelper.writeCenteredTextAt(this.ctx, "Demo Scene!", new Vector2(this.app.width / 2, this.app.height / 2), "white");
+        TextHelper.writeCenteredTextAt(this.app, "Demo Scene!", {
+            "fillStyle": "#ffffff",
+            "origin": this.app.center
+        });
     }
 }
