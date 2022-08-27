@@ -1,5 +1,16 @@
 import Scene from "./Scene";
 import { InputDriver } from "./UserInput";
+import { Vector2 } from "./util";
+
+export interface DrawOptions {
+    draw: (ctx: CanvasRenderingContext2D) => void
+    origin?: Vector2
+    strokeStyle?: string
+    fillStyle?: string
+    lineWidth?: number
+    alpha?: number
+    rotation?: number
+}
 
 export default class App {
     readonly canvas: HTMLCanvasElement;
@@ -9,6 +20,10 @@ export default class App {
     public setup: () => void = () => {};
     public loop: () => void = () => {};
     public clear: boolean = true;
+    
+    public cameraOffset: Vector2 = new Vector2(0, 0);
+    public zoom: number = 1;
+    public targetFramerate: number = 60;
     
     private _lastFrameTimestamp: number = Date.now();
     private _width!: number;
@@ -29,6 +44,36 @@ export default class App {
         document.body.appendChild(this.canvas);
 
         this._setup();
+    }
+
+    public draw(options: DrawOptions): void {
+        this.ctx.save();
+        this.ctx.beginPath();
+
+        if (options.origin) this.ctx.translate(options.origin.x, options.origin.y);
+        
+        this.ctx.strokeStyle = options.strokeStyle || "#000000";
+        this.ctx.fillStyle = options.fillStyle || "#000000";
+        this.ctx.globalAlpha = options.alpha || 1;
+        this.ctx.lineWidth = options.lineWidth || 1;
+
+        if (options.rotation) this.ctx.rotate(options.rotation);
+
+        options.draw(this.ctx);
+
+        if (options.strokeStyle) this.ctx.stroke();
+        if (options.fillStyle) this.ctx.fill();
+
+        this.ctx.closePath();
+        this.ctx.restore();
+    }
+
+    public getVisualPosition(position: Vector2): Vector2 {
+        const result = position.clone();
+        result.add(this.cameraOffset);
+        result.x /= this.zoom;
+        result.y /= this.zoom;
+        return result;
     }
 
     public addScene(scene: Scene) {
@@ -79,7 +124,11 @@ export default class App {
         this.canvas.height = height;
     }
 
+    get center(): Vector2 {
+        return new Vector2(this.width / 2, this.height / 2);
+    }
+
     get deltaTime(): number {
-        return 1 / (Date.now() - this._lastFrameTimestamp);
+        return (Date.now() - this._lastFrameTimestamp) / (1000 / this.targetFramerate);
     }
 }

@@ -366,7 +366,7 @@
   },
   "scripts": {
     "test": "jest ./tests",
-    "serve": "webpack serve",
+    "dev": "webpack serve",
     "obfuscate": "javascript-obfuscator ./dist/bundle.js -o ./dist/bundle.js",
     "build": "webpack build",
     "production": "npm run build && npm run obfuscate"
