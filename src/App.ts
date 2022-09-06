@@ -1,3 +1,4 @@
+import WSNetworkDriver from "./Network";
 import Scene from "./Scene";
 import { InputDriver } from "./UserInput";
 import { Vector2 } from "./Util";
@@ -16,6 +17,7 @@ export default class App {
     readonly canvas: HTMLCanvasElement;
     readonly ctx: CanvasRenderingContext2D;
 
+    public socket: WSNetworkDriver;
     public inputDriver: InputDriver;
     public setup: () => void = () => {};
     public loop: () => void = () => {};
@@ -36,6 +38,7 @@ export default class App {
         this.ctx = this.canvas.getContext("2d")!;
 
         this._scenes = new Map();
+        this.socket = new WSNetworkDriver();
         this.inputDriver = new InputDriver(this);
 
         this.width = width;
