@@ -4,7 +4,7 @@ import demo2 from "./Scenes/demo2";
 
 let app: App;
 
-$(function() {
+$(async function() {
     app = new App(window.innerWidth, window.innerHeight);
 
     app.addScene(new demo(app, "demo"));

@@ -87,8 +87,14 @@ export default class App {
     }
 
     public enableScene(name: string) {
-        this._scenes.get(name)?.setup();
-        this._scene = name;
+        const scene = this._scenes.get(name);
+        if (scene) {
+            if (scene.persistResources) scene.resource.clear();
+            scene.setup();
+            this._scene = name;
+        } else {
+            throw new ReferenceError("No registered scene with that name");
+        }
     }
     
     private _setup() {

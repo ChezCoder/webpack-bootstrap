@@ -1,5 +1,6 @@
+import { ImageResource } from "../Resource";
 import Scene from "../Scene";
-import { Angle, Random, TextHelper, Utils } from "../Util";
+import { Angle, Random, TextHelper, Utils, Vector2 } from "../Util";
 
 export default class extends Scene {
     private rotation1: number = Random.random(0, 180);
@@ -11,6 +12,10 @@ export default class extends Scene {
 
     private circleRotation: number = Random.random(0, 180);
 
+    public setup(): void {
+        this.resource.save("javascript", new ImageResource("./assets/javascript.png"));
+    }
+
     public loop(): void {
         this.rotation1 -= this.inc1 * this.app.deltaTime;
         this.rotation2 += this.inc2 * this.app.deltaTime;
@@ -20,6 +25,19 @@ export default class extends Scene {
         this.rotation2 = Utils.wrapClamp(this.rotation2, 0, 360);
         this.circleRotation = Utils.wrapClamp(this.circleRotation, 0, 360);
 
+        this.app.draw({
+            "origin": Vector2.ORIGIN,
+            "draw": ctx => {
+                const image = this.resource.get<ImageResource>("javascript")!;
+
+                if (image.loaded) {
+                    if (image.data) {
+                        ctx.drawImage(image.data, 0, 0);
+                    }
+                }
+            }
+        });
+        
         this.app.draw({
             "fillStyle": "#555555",
             "origin": this.app.center,

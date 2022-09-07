@@ -396,29 +396,3 @@ export namespace LerpUtils {
         export const Spike: LerpFunction = x => x <= 0.5 ? EaseIn(x / 0.5) : EaseIn(Reverse(x) / 0.5);
     }
 }
-
-export namespace Resource {
-    const resourceMap: Map<string, HTMLImageElement> = new Map();
-
-    export function load(src: string | URL): Promise<HTMLImageElement> {
-        return new Promise(function(res, rej) {
-            if (src instanceof URL) src = src.href;
-
-            const image = new Image();
-            image.onload = () => res(image);
-            image.onerror = err => rej(err);
-            image.onabort = image.onerror;
-            image.src = src;
-        });
-    }
-    
-    export function loadAndSave(name: string, src: string | URL): Promise<void> {
-        return new Promise(function(res, rej) {
-            load(src).then(img => res(void resourceMap.set(name, img))).catch(rej);
-        });
-    }
-
-    export function get(name: string): HTMLImageElement | null {
-        return resourceMap.get(name) || null;
-    }
-}
