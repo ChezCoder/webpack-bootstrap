@@ -65,7 +65,7 @@ export default class extends Scene {
             }
         });
 
-        TextHelper.writeCenteredTextAt(this.app, "Demo Scene!", {
+        TextHelper.writeCenteredTextAt(this, "Demo Scene!", {
             "fillStyle": "#ffffff",
             "origin": this.app.center
         });

@@ -1,4 +1,4 @@
-import App, { DrawOptions } from "./App";
+import Scene, { DrawOptions } from "./Scene";
 
 export type WeightMap = {[key: string]: number};
 
@@ -185,16 +185,16 @@ export namespace TextHelper {
         return measureTextMetrics(ctx, text, font).width;
     }
 
-    export function writeCenteredTextAt(app: App, text: string, options: Partial<DrawOptions>, font: string = app.zoom * 30 + "px Arial") {
-        const width = measureTextWidth(app.ctx, text, font);
-        const height = measureTextHeight(app.ctx, text, font);
+    export function writeCenteredTextAt(scene: Scene, text: string, options: Partial<DrawOptions>, font: string = scene.app.zoom * 30 + "px Arial") {
+        const width = measureTextWidth(scene.app.ctx, text, font);
+        const height = measureTextHeight(scene.app.ctx, text, font);
 
-        options.draw = function(ctx) {
+        options.draw = (ctx: CanvasRenderingContext2D) => {
             ctx.font = font;
             ctx.fillText(text, -width / 2, height / 2);
         };
 
-        app.draw(options as DrawOptions);
+        scene.draw(options as DrawOptions);
     }
 }
 
