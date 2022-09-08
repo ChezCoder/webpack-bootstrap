@@ -25,7 +25,7 @@ export default class extends Scene {
         this.rotation2 = Utils.wrapClamp(this.rotation2, 0, 360);
         this.circleRotation = Utils.wrapClamp(this.circleRotation, 0, 360);
 
-        this.app.draw({
+        this.draw({
             "origin": Vector2.ORIGIN,
             "draw": ctx => {
                 const image = this.resource.get<ImageResource>("webpack")!;
@@ -38,7 +38,7 @@ export default class extends Scene {
             }
         });
 
-        this.app.draw({
+        this.draw({
             "fillStyle": "#555555",
             "origin": this.app.center,
             "rotation": Angle.toRadians(this.rotation1),
@@ -47,7 +47,7 @@ export default class extends Scene {
             }
         });
 
-        this.app.draw({
+        this.draw({
             "fillStyle": "#333333",
             "origin": this.app.center,
             "rotation": Angle.toRadians(this.rotation2),
@@ -56,7 +56,7 @@ export default class extends Scene {
             }
         });
 
-        this.app.draw({
+        this.draw({
             "fillStyle": "#ff0000",
             "origin": this.app.center,
             "rotation": Angle.toRadians(this.circleRotation),

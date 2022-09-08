@@ -1,5 +1,16 @@
 import App from "./App";
 import { ResourceManager } from "./Resource";
+import { Vector2 } from "./Util";
+
+export interface DrawOptions {
+    draw: (ctx: CanvasRenderingContext2D) => void
+    origin?: Vector2
+    strokeStyle?: string
+    fillStyle?: string
+    lineWidth?: number
+    alpha?: number
+    rotation?: number
+}
 
 export default abstract class Scene {
     readonly app: App;
@@ -19,4 +30,29 @@ export default abstract class Scene {
     public setup() {}
 
     public loop() {}
+
+    public draw(options: DrawOptions): void {
+        this.ctx.save();
+        this.ctx.beginPath();
+
+        if (options.origin) {
+            const offset = this.app.getVisualPosition(options.origin);
+            this.ctx.translate(offset.x, offset.y);
+        }
+        
+        this.ctx.strokeStyle = options.strokeStyle || "#000000";
+        this.ctx.fillStyle = options.fillStyle || "#000000";
+        this.ctx.globalAlpha = options.alpha || 1;
+        this.ctx.lineWidth = options.lineWidth || 1;
+
+        if (options.rotation) this.ctx.rotate(options.rotation);
+
+        options.draw(this.ctx);
+
+        if (options.strokeStyle) this.ctx.stroke();
+        if (options.fillStyle) this.ctx.fill();
+
+        this.ctx.closePath();
+        this.ctx.restore();
+    }
 }
