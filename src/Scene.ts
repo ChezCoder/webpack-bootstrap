@@ -42,8 +42,8 @@ export default abstract class Scene {
         
         this.ctx.strokeStyle = options.strokeStyle || "#000000";
         this.ctx.fillStyle = options.fillStyle || "#000000";
-        this.ctx.globalAlpha = options.alpha || 1;
-        this.ctx.lineWidth = options.lineWidth || 1;
+        this.ctx.globalAlpha = options.alpha === 0 ? 0 : options.alpha || 1;
+        this.ctx.lineWidth = options.lineWidth === 0 ? 0 : options.lineWidth || 1;
 
         if (options.rotation) this.ctx.rotate(options.rotation);
 
