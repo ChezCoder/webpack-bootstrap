@@ -418,6 +418,10 @@ export namespace Color {
         public toString(): string {
             return `rgb(${this.red}, ${this.green}, ${this.blue})`;
         }
+
+        public clone(): RGB {
+            return new RGB(this.red, this.green, this.blue);
+        }
     }
 
     export class Hex {
@@ -439,6 +443,10 @@ export namespace Color {
 
         public toString(): string {
             return `#${Utils.prefixSpacing(this._value.toString(16), "0", 6)}`;
+        }
+
+        public clone(): Hex {
+            return new Hex(this.toString());
         }
     }
 }
