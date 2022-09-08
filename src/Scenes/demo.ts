@@ -62,12 +62,17 @@ export default class extends Scene {
             "rotation": Angle.toRadians(this.circleRotation),
             "draw": ctx => {
                 ctx.arc(-150 * this.app.zoom, 0, 20 * this.app.zoom, 0, Math.PI * 2);
-            }
+            },
+            "alpha": 0.3
         });
 
         TextHelper.writeCenteredTextAt(this, "Demo Scene!", {
             "fillStyle": "#ffffff",
-            "origin": this.app.center
+            "origin": this.app.center,
+            "alpha": 0.6,
+            "lineWidth": 3,
+            "strokeStyle": "black",
+            "rotation": Angle.toRadians(-20)
         });
     }
 }

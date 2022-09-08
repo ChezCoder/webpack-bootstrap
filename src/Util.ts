@@ -191,7 +191,8 @@ export namespace TextHelper {
 
         options.draw = (ctx: CanvasRenderingContext2D) => {
             ctx.font = font;
-            ctx.fillText(text, -width / 2, height / 2);
+            if (options.strokeStyle) ctx.strokeText(text, -width / 2, height / 2);
+            if (options.fillStyle) ctx.fillText(text, -width / 2, height / 2);
         };
 
         scene.draw(options as DrawOptions);
