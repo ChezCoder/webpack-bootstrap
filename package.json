@@ -1,5 +1,10 @@
 {
-  "jest": {},
+  "jest": {
+    "verbose": true,
+    "transform": {
+      "^.+\\.tsx?$": "ts-jest"
+    }
+  },
   "devDependencies": {
     "@types/jest": "^28.1.7",
     "@types/jquery": "^3.5.14",
@@ -365,11 +370,11 @@
     "yargs": "^17.5.1"
   },
   "scripts": {
-    "test": "jest ./tests",
+    "test": "jest ./tests --passWithNoTests",
     "dev": "webpack serve",
     "obfuscate": "javascript-obfuscator ./dist/bundle.js -o ./dist/bundle.js",
     "build": "webpack build",
-    "production": "npm run build && npm run obfuscate"
+    "production": "npm run test && npm run build && npm run obfuscate"
   },
   "repository": {
     "type": "git",

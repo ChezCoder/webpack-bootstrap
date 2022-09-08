@@ -1,6 +1,6 @@
 import { ImageResource } from "../Resource";
 import Scene from "../Scene";
-import { Angle, Random, TextHelper, Utils, Vector2 } from "../Util";
+import { Angle, Color, Random, TextHelper, Utils, Vector2 } from "../Util";
 
 export default class extends Scene {
     private rotation1: number = Random.random(0, 180);
@@ -39,7 +39,7 @@ export default class extends Scene {
         });
 
         this.draw({
-            "fillStyle": "#555555",
+            "fillStyle": new Color.Hex("#555555").toRGB().toHex().toString(),
             "origin": this.app.center,
             "rotation": Angle.toRadians(this.rotation1),
             "draw": ctx => {
@@ -57,7 +57,7 @@ export default class extends Scene {
         });
 
         this.draw({
-            "fillStyle": "#ff0000",
+            "fillStyle": new Color.Hex(0xff0000).toString(),
             "origin": this.app.center,
             "rotation": Angle.toRadians(this.circleRotation),
             "draw": ctx => {
@@ -67,7 +67,7 @@ export default class extends Scene {
         });
 
         TextHelper.writeCenteredTextAt(this, "Demo Scene!", {
-            "fillStyle": "#ffffff",
+            "fillStyle": new Color.Hex("#ffffff").toString(),
             "origin": this.app.center,
             "alpha": 0.6,
             "lineWidth": 3,

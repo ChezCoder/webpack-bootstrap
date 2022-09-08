@@ -397,3 +397,48 @@ export namespace LerpUtils {
         export const Spike: LerpFunction = x => x <= 0.5 ? EaseIn(x / 0.5) : EaseIn(Reverse(x) / 0.5);
     }
 }
+
+export namespace Color {
+    export class RGB {
+        public red: number;
+        public green: number;
+        public blue: number;
+
+        constructor(red: number, green: number, blue: number) {
+            this.red = red;
+            this.green = green;
+            this.blue = blue;
+        }
+
+        public toHex(): Hex {
+            const space = (str: string) => Utils.prefixSpacing(str, "0", 2);
+            return new Hex(`#${space(this.red.toString(16))}${space(this.green.toString(16))}${space(this.blue.toString(16))}`);
+        }
+
+        public toString(): string {
+            return `rgb(${this.red}, ${this.green}, ${this.blue})`;
+        }
+    }
+
+    export class Hex {
+        private _value: number;
+
+        constructor(hexadecimal: number | string) {
+            if (Number.isInteger(hexadecimal)) {
+                this._value = +hexadecimal;
+            } else {
+                this._value = parseInt(hexadecimal.toString().substring(1), 16);
+            }
+        }
+
+
+        public toRGB(): RGB {
+            const stringified = this.toString();
+            return new RGB(parseInt(stringified.substring(1, 3), 16), parseInt(stringified.substring(3, 5), 16), parseInt(stringified.substring(5, 7), 16));
+        }
+
+        public toString(): string {
+            return `#${Utils.prefixSpacing(this._value.toString(16), "0", 6)}`;
+        }
+    }
+}
