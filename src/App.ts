@@ -3,6 +3,42 @@ import Scene from "./Scene";
 import { InputDriver } from "./UserInput";
 import { Vector2 } from "./Util";
 
+export type CursorOptions = "alias" |
+    "all-scroll" |
+    "auto" |
+    "cell" |
+    "col-resize" |
+    "context-menu" |
+    "copy" |
+    "crosshair" |
+    "default" |
+    "e-resize" |
+    "ew-resize" |
+    "grab" |
+    "grabbing" |
+    "help" |
+    "move" |
+    "n-resize" |
+    "ne-resize" |
+    "nesw-resize" |
+    "ns-resize" |
+    "nw-resize" |
+    "nwse-resize" |
+    "no-drop" |
+    "none" |
+    "not-allowed" |
+    "pointer" |
+    "progress" |
+    "row-resize" |
+    "s-resize" |
+    "se-resize" |
+    "sw-resize" |
+    "text" |
+    "w-resize" |
+    "wait" |
+    "zoom-in" |
+    "zoom-out";
+
 export default class App {
     readonly canvas: HTMLCanvasElement;
     readonly ctx: CanvasRenderingContext2D;
@@ -72,8 +108,10 @@ export default class App {
         this.input.step();
         this.loop.apply(this);
         
-        if (this.clear)
+        if (this.clear) {
             this.ctx.clearRect(0, 0, this._width, this._height);
+            this.cursor = "default";
+        }
         
         this._scenes.get(this._scene || "")?.loop();
         this._lastFrameTimestamp = Date.now();
@@ -107,5 +145,17 @@ export default class App {
 
     get deltaTime(): number {
         return (Date.now() - this._lastFrameTimestamp) / (1000 / this.targetFramerate);
+    }
+
+    set cursor(cursor: CursorOptions | URL) {
+        if (cursor instanceof URL) {
+            this.canvas.style.cursor = `url("${cursor.href}")`;
+        } else {
+            this.canvas.style.cursor = cursor;
+        }
+    }
+
+    get cursor(): CursorOptions | URL {
+        return this.canvas.style.cursor as CursorOptions | URL;
     }
 }
