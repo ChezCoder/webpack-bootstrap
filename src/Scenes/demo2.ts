@@ -1,6 +1,6 @@
-import { ImageResource } from "../Resource";
-import Scene from "../Scene";
-import { Angle, Random, TextHelper, Utils, Vector2 } from "../Util";
+import { ImageResource } from "../lib/Resource";
+import Scene from "../lib/Scene";
+import { Angle, Random, TextHelper, Utils, Vector2 } from "../lib/Util";
 
 export default class extends Scene {
     private rotation1: number = Random.random(0, 180);

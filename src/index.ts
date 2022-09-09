@@ -1,4 +1,4 @@
-import App from "./App";
+import App from "./lib/App";
 import demo from "./Scenes/demo";
 import demo2 from "./Scenes/demo2";
 
