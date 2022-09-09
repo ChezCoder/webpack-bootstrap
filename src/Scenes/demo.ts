@@ -33,7 +33,11 @@ export default class extends Scene {
                 if (image.loaded) {
                     if (image.data) {
                         ctx.drawImage(image.data, 0, 0);
+                    } else {
+                        console.log("Not loaded");
                     }
+                } else {
+                    console.log("Not loaded");
                 }
             }
         });

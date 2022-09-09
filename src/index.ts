@@ -9,13 +9,13 @@ $(async function() {
 
     app.addScene(new demo(app, "demo"));
     app.addScene(new demo2(app, "demo2"));
-
+    
     app.enableScene("demo");
 
     app.loop = function() {
-        if (app.inputDriver.keyPress == "1") {
+        if (app.input.keyPress == "1") {
             app.enableScene("demo");
-        } else if (app.inputDriver.keyPress == "2") {
+        } else if (app.input.keyPress == "2") {
             app.enableScene("demo2");
         }
     }
