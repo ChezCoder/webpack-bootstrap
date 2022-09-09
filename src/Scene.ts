@@ -19,8 +19,6 @@ export default abstract class Scene {
     readonly resource: ResourceManager;
     readonly persistResources: boolean;
 
-    private _cursor: string = "default";
-
     constructor(app: App, name: string, persistResources: boolean = true) {
         this.app = app;
         this.name = name;
@@ -56,9 +54,5 @@ export default abstract class Scene {
 
         this.ctx.closePath();
         this.ctx.restore();
-    }
-
-    public get cursor() {
-        return this._cursor;
     }
 }
