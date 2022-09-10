@@ -73,8 +73,12 @@ export default class WSNetworkDriver {
         }
     }
 
-    public send(packet: { [key: string]: string }) {
-        this.websocket?.send(JSON.stringify(packet));
+    public send(packet: { [key: string]: string } | BasePacket) {
+        if (packet instanceof BasePacket) {
+            this.websocket?.send(JSON.stringify(packet.value()));
+        } else {
+            this.websocket?.send(JSON.stringify(packet));
+        }
     }
 
     get websocket(): WebSocket | undefined {
