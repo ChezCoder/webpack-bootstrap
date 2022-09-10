@@ -217,3 +217,9 @@ export namespace Network {
         });
     }
 }
+
+export abstract class BasePacket {
+    public value(): { [key: string]: string } {
+        return {};
+    }
+}
