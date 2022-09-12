@@ -36,8 +36,10 @@ export default class WSNetworkDriver {
                     if (event) {
                         const callbacks = this._registeredEvents[event];
 
-                        for (const callback of callbacks) {
-                            callback?.bind(this._websocket)(packet);
+                        if (callbacks) {
+                            for (const callback of callbacks) {
+                                callback?.bind(this._websocket)(packet);
+                            }
                         }
                     }
                 }
