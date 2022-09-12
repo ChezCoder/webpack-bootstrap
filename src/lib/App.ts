@@ -48,6 +48,7 @@ export default class App {
     public setup: () => void = () => {};
     public loop: () => void = () => {};
     public clear: boolean = true;
+    public storage: Map<String, any> = new Map();
     
     public cameraOffset: Vector2 = new Vector2(0, 0);
     public zoom: number = 1;
