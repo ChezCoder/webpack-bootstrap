@@ -21,8 +21,6 @@ export default class WSNetworkDriver {
         if (this.connected) throw new SyntaxError("WebSocket is already connected");
         if (!this.url) throw new TypeError("URL is not set");
 
-        this._registeredEvents = {};
-
         this._websocket = new WebSocket(this.url);
         
         this._websocket.onopen = () => {
@@ -75,6 +73,10 @@ export default class WSNetworkDriver {
                 this._registeredEvents[event][index] = null;
             }
         }
+    }
+
+    public clearListeners() {
+        this._registeredEvents = {};
     }
 
     public send(packet: { [key: string]: string } | BasePacket) {
