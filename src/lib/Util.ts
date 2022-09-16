@@ -69,6 +69,10 @@ export class Vector2 {
     public static add(vector1: Vector2, vector2: Vector2): Vector2 {
         return new Vector2(vector1.x + vector2.x, vector1.y + vector2.y);
     }
+
+    public equals(other: Vector2) {
+        return this.x == other.x && this.y == other.y;
+    }
 }
 
 /**
@@ -118,6 +122,10 @@ export class Force {
 
     set degrees(degrees: number) {
         this.radians = Angle.toRadians(degrees);
+    }
+
+    public equals(other: Force) {
+        return this.radians == other.radians && this.magnitude == other.magnitude;
     }
 
     public static add(force1: Force, force2: Force): Force {
