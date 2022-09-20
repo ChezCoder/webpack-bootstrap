@@ -18,10 +18,14 @@ export default class WSNetworkDriver {
     }
 
     public connect() {
-        if (this.connected) throw new SyntaxError("WebSocket is already connected");
-        if (!this.url) throw new TypeError("URL is not set");
+        if (this.connected) return this.onError(new SyntaxError("WebSocket is already connected"));
+        if (!this.url) return this.onError(new TypeError("URL is not set"));
 
-        this._websocket = new WebSocket(this.url);
+        try {
+            this._websocket = new WebSocket(this.url);
+        } catch (error) {
+            return this.onError(error);
+        }
         
         this._websocket.onopen = () => {
             this._connected = true;
