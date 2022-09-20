@@ -1,4 +1,4 @@
-import { Color } from "../src/Util";
+import { Color } from "../src/lib/Util";
 
 describe("Testing color utility", () => {
     test("RGB class", () => {

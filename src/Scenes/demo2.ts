@@ -1,63 +1,72 @@
 import { ImageResource } from "../lib/Resource";
-import Scene from "../lib/Scene";
-import { Angle, Random, TextHelper, Utils, Vector2 } from "../lib/Util";
+import Scene, { DrawOptions, Renderable } from "../lib/Scene";
+import { Angle, Color, Random, TextHelper, Utils } from "../lib/Util";
+
+class Square extends Renderable {
+    public rotation: number;
+    public dims: number;
+    public increment: number;
+    public color: string;
+
+    constructor(scene: Scene, increment: number, dimentions: number, color: string) {
+        super(scene);
+
+        this.rotation = Random.random(0, 180);
+        this.increment = increment;
+        this.dims = dimentions;
+        this.color = color;
+    }
+
+    public value(): DrawOptions {
+        this.rotation += this.increment * this.scene.app.deltaTime;
+        this.rotation = Utils.wrapClamp(this.rotation, 0, 360);
+
+        return {
+            "fillStyle": new Color.Hex(this.color).toRGB().toHex().toString(),
+            "origin": this.scene.app.center,
+            "rotation": Angle.toRadians(this.rotation),
+            "draw": ctx => {
+                ctx.fillRect(-this.dims * this.scene.app.zoom / 2, -this.dims * this.scene.app.zoom / 2, this.dims * this.scene.app.zoom, this.dims * this.scene.app.zoom);
+            }
+        };
+    }
+}
 
 export default class extends Scene {
-    private rotation1: number = Random.random(0, 180);
-    private rotation2: number = Random.random(0, 180);
-    private inc1: number = Random.random(0, 200) / 100;
-    private inc2: number = Random.random(0, 200) / 100;
-    private squareDims1 = 210;
-    private squareDims2 = 200;
+    public square1: Square = new Square(this, -Random.random(0, 200) / 100, 210, Color.Enum.DIM_GRAY);
+    public square2: Square = new Square(this, Random.random(0, 200) / 100, 200, Color.Enum.GRAY);
 
     private circleRotation: number = Random.random(0, 180);
 
     public setup(): void {
-        this.resource.save("javascript", new ImageResource("./assets/javascript.png"));
+        this.resource.save("webpack", new ImageResource("./assets/javascript.png"));
     }
 
     public loop(): void {
-        this.rotation1 -= this.inc1 * this.app.deltaTime;
-        this.rotation2 += this.inc2 * this.app.deltaTime;
-        this.circleRotation += -0.3 * this.app.deltaTime;
-
-        this.rotation1 = Utils.wrapClamp(this.rotation1, 0, 360);
-        this.rotation2 = Utils.wrapClamp(this.rotation2, 0, 360);
-        this.circleRotation = Utils.wrapClamp(this.circleRotation, 0, 360);
-
         this.draw({
-            "origin": Vector2.ORIGIN,
             "draw": ctx => {
-                const image = this.resource.get<ImageResource>("javascript")!;
-
+                const image = this.resource.get<ImageResource>("webpack")!;
+        
                 if (image.loaded) {
                     if (image.data) {
                         ctx.drawImage(image.data, 0, 0);
+                    } else {
+                        console.log("Not loaded");
                     }
+                } else {
+                    console.log("Not loaded");
                 }
             }
         });
         
-        this.draw({
-            "fillStyle": "#555555",
-            "origin": this.app.center,
-            "rotation": Angle.toRadians(this.rotation1),
-            "draw": ctx => {
-                ctx.fillRect(-this.squareDims1 * this.app.zoom / 2, -this.squareDims1 * this.app.zoom / 2, this.squareDims1 * this.app.zoom, this.squareDims1 * this.app.zoom);
-            }
-        });
+        this.circleRotation += 0.3 * this.app.deltaTime;
+        this.circleRotation = Utils.wrapClamp(this.circleRotation, 0, 360);
+
+        this.draw(this.square1);
+        this.draw(this.square2);
 
         this.draw({
-            "fillStyle": "#333333",
-            "origin": this.app.center,
-            "rotation": Angle.toRadians(this.rotation2),
-            "draw": ctx => {
-                ctx.fillRect(0, 0, this.squareDims2 * this.app.zoom, this.squareDims2 * this.app.zoom);
-            }
-        });
-
-        this.draw({
-            "fillStyle": "#0000ff",
+            "fillStyle": new Color.Hex(0x0000ff).toString(),
             "origin": this.app.center,
             "rotation": Angle.toRadians(this.circleRotation),
             "draw": ctx => {
@@ -67,7 +76,7 @@ export default class extends Scene {
         });
 
         TextHelper.writeCenteredTextAt(this, "Demo Scene 2!", {
-            "fillStyle": "#00ffff",
+            "fillStyle": new Color.Hex("#ffffff").toString(),
             "origin": this.app.center,
             "alpha": 0.6,
             "lineWidth": 3,

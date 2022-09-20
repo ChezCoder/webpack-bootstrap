@@ -1,14 +1,40 @@
 import { ImageResource } from "../lib/Resource";
-import Scene from "../lib/Scene";
-import { Angle, Color, Random, TextHelper, Utils, Vector2 } from "../lib/Util";
+import Scene, { DrawOptions, Renderable } from "../lib/Scene";
+import { Angle, Color, Random, TextHelper, Utils } from "../lib/Util";
+
+class Square extends Renderable {
+    public rotation: number;
+    public dims: number;
+    public increment: number;
+    public color: string;
+
+    constructor(scene: Scene, increment: number, dimentions: number, color: string) {
+        super(scene);
+
+        this.rotation = Random.random(0, 180);
+        this.increment = increment;
+        this.dims = dimentions;
+        this.color = color;
+    }
+
+    public value(): DrawOptions {
+        this.rotation += this.increment * this.scene.app.deltaTime;
+        this.rotation = Utils.wrapClamp(this.rotation, 0, 360);
+
+        return {
+            "fillStyle": new Color.Hex(this.color).toRGB().toHex().toString(),
+            "origin": this.scene.app.center,
+            "rotation": Angle.toRadians(this.rotation),
+            "draw": ctx => {
+                ctx.fillRect(-this.dims * this.scene.app.zoom / 2, -this.dims * this.scene.app.zoom / 2, this.dims * this.scene.app.zoom, this.dims * this.scene.app.zoom);
+            }
+        };
+    }
+}
 
 export default class extends Scene {
-    private rotation1: number = Random.random(0, 180);
-    private rotation2: number = Random.random(0, 180);
-    private inc1: number = Random.random(0, 200) / 100;
-    private inc2: number = Random.random(0, 200) / 100;
-    private squareDims1 = 210;
-    private squareDims2 = 200;
+    public square1: Square = new Square(this, Random.random(0, 200) / 100, 210, Color.Enum.GRAY);
+    public square2: Square = new Square(this, -Random.random(0, 200) / 100, 200, Color.Enum.DIM_GRAY);
 
     private circleRotation: number = Random.random(0, 180);
 
@@ -17,19 +43,10 @@ export default class extends Scene {
     }
 
     public loop(): void {
-        this.rotation1 += this.inc1 * this.app.deltaTime;
-        this.rotation2 -= this.inc2 * this.app.deltaTime;
-        this.circleRotation += 0.3 * this.app.deltaTime;
-
-        this.rotation1 = Utils.wrapClamp(this.rotation1, 0, 360);
-        this.rotation2 = Utils.wrapClamp(this.rotation2, 0, 360);
-        this.circleRotation = Utils.wrapClamp(this.circleRotation, 0, 360);
-
         this.draw({
-            "origin": Vector2.ORIGIN,
             "draw": ctx => {
                 const image = this.resource.get<ImageResource>("webpack")!;
-
+        
                 if (image.loaded) {
                     if (image.data) {
                         ctx.drawImage(image.data, 0, 0);
@@ -41,24 +58,12 @@ export default class extends Scene {
                 }
             }
         });
+        
+        this.circleRotation += 0.3 * this.app.deltaTime;
+        this.circleRotation = Utils.wrapClamp(this.circleRotation, 0, 360);
 
-        this.draw({
-            "fillStyle": new Color.Hex("#555555").toRGB().toHex().toString(),
-            "origin": this.app.center,
-            "rotation": Angle.toRadians(this.rotation1),
-            "draw": ctx => {
-                ctx.fillRect(-this.squareDims1 * this.app.zoom / 2, -this.squareDims1 * this.app.zoom / 2, this.squareDims1 * this.app.zoom, this.squareDims1 * this.app.zoom);
-            }
-        });
-
-        this.draw({
-            "fillStyle": "#333333",
-            "origin": this.app.center,
-            "rotation": Angle.toRadians(this.rotation2),
-            "draw": ctx => {
-                ctx.fillRect(0, 0, this.squareDims2 * this.app.zoom, this.squareDims2 * this.app.zoom);
-            }
-        });
+        this.draw(this.square1);
+        this.draw(this.square2);
 
         this.draw({
             "fillStyle": new Color.Hex(0xff0000).toString(),
