@@ -1,40 +1,11 @@
 import { ImageResource } from "../lib/Resource";
-import Scene, { DrawOptions, Renderable } from "../lib/Scene";
+import Scene, { Renderable } from "../lib/Scene";
 import { Angle, Color, Random, TextHelper, Utils } from "../lib/Util";
-
-class Square extends Renderable {
-    public rotation: number;
-    public dims: number;
-    public increment: number;
-    public color: string;
-
-    constructor(scene: Scene, increment: number, dimentions: number, color: string) {
-        super(scene);
-
-        this.rotation = Random.random(0, 180);
-        this.increment = increment;
-        this.dims = dimentions;
-        this.color = color;
-    }
-
-    public value(): DrawOptions {
-        this.rotation += this.increment * this.scene.app.deltaTime;
-        this.rotation = Utils.wrapClamp(this.rotation, 0, 360);
-
-        return {
-            "fillStyle": new Color.Hex(this.color).toRGB().toHex().toString(),
-            "origin": this.scene.app.center,
-            "rotation": Angle.toRadians(this.rotation),
-            "draw": ctx => {
-                ctx.fillRect(-this.dims * this.scene.app.zoom / 2, -this.dims * this.scene.app.zoom / 2, this.dims * this.scene.app.zoom, this.dims * this.scene.app.zoom);
-            }
-        };
-    }
-}
+import { SceneElements } from "./SceneElements";
 
 export default class extends Scene {
-    public square1: Square = new Square(this, Random.random(0, 200) / 100, 210, Color.Enum.GRAY);
-    public square2: Square = new Square(this, -Random.random(0, 200) / 100, 200, Color.Enum.DIM_GRAY);
+    public square1: Renderable = new SceneElements.Square1(this, Random.random(0, 200) / 100, 210, Color.Enum.GRAY);
+    public square2: Renderable = new SceneElements.Square1(this, -Random.random(0, 200) / 100, 200, Color.Enum.DIM_GRAY);
 
     private circleRotation: number = Random.random(0, 180);
 

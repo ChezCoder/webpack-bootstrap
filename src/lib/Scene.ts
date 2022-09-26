@@ -12,17 +12,17 @@ export interface DrawOptions {
     rotation?: number
 }
 
-export abstract class Renderable<S = Scene> {
+export abstract class Renderable<S extends Scene = Scene> {
     protected scene: S;
 
     constructor(scene: S) {
         this.scene = scene;
     }
 
-    public value(): DrawOptions {
-        return {
+    public draw(): void {
+        this.scene.draw({
             "draw": () => {}
-        }
+        });
     }
 }
 
@@ -47,7 +47,7 @@ export default abstract class Scene {
 
     public draw(options: DrawOptions | Renderable): void {
         if (options instanceof Renderable) {
-            options = options.value();
+            return options.draw();
         }
         
         this.ctx.save();
