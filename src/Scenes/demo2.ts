@@ -10,7 +10,7 @@ export default class extends Scene {
     private circleRotation: number = Random.random(0, 180);
 
     public setup(): void {
-        this.resource.save("webpack", new ImageResource("./assets/javascript.png"));
+        this.resource.save("webpack", new ImageResource("./assets/images/javascript.png"));
     }
 
     public loop(): void {
