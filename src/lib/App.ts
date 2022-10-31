@@ -118,7 +118,7 @@ export default class App {
         
         if (scene) {
             scene.renderables.forEach(renderable => {
-                renderable.draw();
+                if (renderable.enabled) renderable.draw();
             });
             scene.loop();
         }
