@@ -1,16 +1,14 @@
 import { ImageResource } from "../lib/Resource";
-import Scene, { Renderable } from "../lib/Scene";
+import Scene from "../lib/Scene";
 import { Angle, Color, Random, TextHelper, Utils } from "../lib/Util";
-import { SceneElements } from "./SceneElements";
-
+import { Square2 } from "../SceneObjects/Square2";
 export default class extends Scene {
-    public square1: Renderable = new SceneElements.Square2(this, -Random.random(0, 200) / 100, 210, Color.Enum.DIM_GRAY);
-    public square2: Renderable = new SceneElements.Square2(this, Random.random(0, 200) / 100, 200, Color.Enum.GRAY);
-
     private circleRotation: number = Random.random(0, 180);
 
     public setup(): void {
         this.resource.save("webpack", new ImageResource("./assets/images/javascript.png"));
+        this.addRenderable(new Square2(this, -Random.random(0, 200) / 100, 210, Color.Enum.DIM_GRAY));
+        this.addRenderable(new Square2(this, Random.random(0, 200) / 100, 200, Color.Enum.GRAY));
     }
 
     public loop(): void {
@@ -32,9 +30,6 @@ export default class extends Scene {
         
         this.circleRotation += 0.3 * this.app.deltaTime;
         this.circleRotation = Utils.wrapClamp(this.circleRotation, 0, 360);
-
-        this.draw(this.square1);
-        this.draw(this.square2);
 
         this.draw({
             "fillStyle": new Color.Hex(0x0000ff).toString(),

@@ -59,30 +59,32 @@ export default abstract class Scene {
         return renderable.id;
     }
 
-    public draw(options: DrawOptions | Renderable): void {
-        if (options instanceof Renderable) {
-            return options.draw();
+    public draw(renderable: Renderable): void;
+    public draw(options: DrawOptions): void;
+    public draw(object: DrawOptions | Renderable): void {
+        if (object instanceof Renderable) {
+            return object.draw();
         }
         
         this.ctx.save();
         this.ctx.beginPath();
 
-        if (options.origin) {
-            const offset = options.origin;
+        if (object.origin) {
+            const offset = object.origin;
             this.ctx.translate(offset.x, offset.y);
         }
         
-        this.ctx.strokeStyle = options.strokeStyle || "#000000";
-        this.ctx.fillStyle = options.fillStyle || "#000000";
-        this.ctx.globalAlpha = options.alpha === 0 ? 0 : options.alpha || 1;
-        this.ctx.lineWidth = options.lineWidth === 0 ? 0 : options.lineWidth || 1;
+        this.ctx.strokeStyle = object.strokeStyle || "#000000";
+        this.ctx.fillStyle = object.fillStyle || "#000000";
+        this.ctx.globalAlpha = object.alpha === 0 ? 0 : object.alpha || 1;
+        this.ctx.lineWidth = object.lineWidth === 0 ? 0 : object.lineWidth || 1;
 
-        if (options.rotation) this.ctx.rotate(options.rotation);
+        if (object.rotation) this.ctx.rotate(object.rotation);
 
-        options.draw(this.ctx);
+        object.draw(this.ctx);
 
-        if (options.strokeStyle) this.ctx.stroke();
-        if (options.fillStyle) this.ctx.fill();
+        if (object.strokeStyle) this.ctx.stroke();
+        if (object.fillStyle) this.ctx.fill();
 
         this.ctx.closePath();
         this.ctx.restore();

@@ -120,6 +120,7 @@ export default class App {
             scene.renderables.forEach(renderable => {
                 renderable.draw();
             });
+            scene.loop();
         }
 
         this._lastFrameTimestamp = Date.now();

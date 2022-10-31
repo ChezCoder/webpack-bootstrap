@@ -1,7 +1,7 @@
 import Scene, { Renderable } from "../lib/Scene";
 import { Angle, Color, Random, Utils } from "../lib/Util";
 
-export class Square1 extends Renderable {
+export class Square2 extends Renderable {
     public rotation: number;
     public dims: number;
     public increment: number;
@@ -19,7 +19,7 @@ export class Square1 extends Renderable {
     public draw(): void {
         this.rotation += this.increment * this.scene.app.deltaTime;
         this.rotation = Utils.wrapClamp(this.rotation, 0, 360);
-    
+
         this.scene.draw({
             "fillStyle": new Color.Hex(this.color).toRGB().toHex().toString(),
             "origin": this.scene.app.center,

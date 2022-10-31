@@ -1,107 +1,102 @@
-export default class WSNetworkDriver {
-    public url?: string;
-    public onOpen: () => void = () => {};
-    public onMessage: (message: string) => void = () => {};
-    public onClose: (code: number) => void = () => {};
-    public onError: (error: any) => void = error => { throw error };
-    public eventPacketProperty?: string;
-    
-    private _websocket?: WebSocket;
-    private _connected: boolean = false;
-    private _registeredEvents: { [eventName: string]: (((packet: Network.AnyPacket) => void) | null)[] } = {};
-
-    constructor(url?: string | URL) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.BasePacket = exports.Network = exports.MimeTypes = void 0;
+class WSNetworkDriver {
+    constructor(url) {
+        this.onOpen = () => { };
+        this.onMessage = () => { };
+        this.onClose = () => { };
+        this.onError = error => { throw error; };
+        this._connected = false;
+        this._registeredEvents = {};
         if (url) {
             this.url = url instanceof URL ? url.href : url;
-            if (!(this.url.startsWith("ws:") || this.url.startsWith("wss:"))) throw new TypeError(`Invalid protocol ${this.url.split(":")[0]} for websocket`);
+            if (!(this.url.startsWith("ws:") || this.url.startsWith("wss:")))
+                throw new TypeError(`Invalid protocol ${this.url.split(":")[0]} for websocket`);
         }
     }
-
-    public connect() {
-        if (this.connected) return this.onError(new SyntaxError("WebSocket is already connected"));
-        if (!this.url) return this.onError(new TypeError("URL is not set"));
-
+    connect() {
+        if (this.connected)
+            return this.onError(new SyntaxError("WebSocket is already connected"));
+        if (!this.url)
+            return this.onError(new TypeError("URL is not set"));
         try {
             this._websocket = new WebSocket(this.url);
-        } catch (error) {
+        }
+        catch (error) {
             return this.onError(error);
         }
-        
         this._websocket.onopen = () => {
             this._connected = true;
-            this.onOpen()
+            this.onOpen();
         };
-        
         this._websocket.onmessage = data => {
             try {
-                const packet: Network.AnyPacket = JSON.parse(data.data);
+                const packet = JSON.parse(data.data);
                 if (this.eventPacketProperty) {
                     const event = packet[this.eventPacketProperty];
                     if (event) {
                         const callbacks = this._registeredEvents[event];
-
                         if (callbacks) {
                             for (const callback of callbacks) {
-                                callback?.bind(this._websocket)(packet);
+                                callback === null || callback === void 0 ? void 0 : callback.bind(this._websocket)(packet);
                             }
                         }
                     }
                 }
-            } catch (error) {
+            }
+            catch (error) {
                 if (!(error instanceof SyntaxError)) {
                     throw error;
                 }
             }
             this.onMessage(data.data);
         };
-
         this._websocket.onclose = code => {
             this._connected = false;
             this.onClose(code.code);
         };
-        
         this._websocket.onerror = this.onError;
     }
-
-    public on(event: string, cb: (packet: Network.AnyPacket) => void) {
-        if (!this.eventPacketProperty) throw new SyntaxError("Set the eventPacketProperty before using this");
+    on(event, cb) {
+        if (!this.eventPacketProperty)
+            throw new SyntaxError("Set the eventPacketProperty before using this");
         this._registeredEvents[event] = this._registeredEvents[event] || [];
         this._registeredEvents[event].push(cb);
     }
-
-    public removeListeners(event: string, indices: number[] = []) {
+    removeListeners(event, indices = []) {
         if (indices.length == 0) {
             this._registeredEvents[event] = [];
-        } else {
+        }
+        else {
             for (let index of indices) {
                 this._registeredEvents[event][index] = null;
             }
         }
     }
-
-    public clearListeners() {
+    clearListeners() {
         this._registeredEvents = {};
     }
-
-    public send(packet: { [key: string]: string } | BasePacket) {
+    send(packet) {
+        var _a, _b;
         if (packet instanceof BasePacket) {
-            this.websocket?.send(JSON.stringify(packet.value()));
-        } else {
-            this.websocket?.send(JSON.stringify(packet));
+            (_a = this.websocket) === null || _a === void 0 ? void 0 : _a.send(JSON.stringify(packet.value()));
+        }
+        else {
+            (_b = this.websocket) === null || _b === void 0 ? void 0 : _b.send(JSON.stringify(packet));
         }
     }
-
-    get websocket(): WebSocket | undefined {
+    get websocket() {
         return this._websocket;
     }
-
-    get connected(): boolean {
+    get connected() {
         return this._connected;
     }
 }
-
-export namespace MimeTypes {
-    export const AUDIO = {
+exports.default = WSNetworkDriver;
+var MimeTypes;
+(function (MimeTypes) {
+    MimeTypes.AUDIO = {
         MIDI: "audio/midi",
         XMIDI: "audio/x-midi",
         MP3: "audio/mpeg",
@@ -112,8 +107,7 @@ export namespace MimeTypes {
         WEBM: "audio/webm",
         WEBA: "audio/webm"
     };
-
-    export const VIDEO = {
+    MimeTypes.VIDEO = {
         MP4: "video/mp4",
         MPEG: "video/mpeg",
         OGG: "video/ogg",
@@ -121,8 +115,7 @@ export namespace MimeTypes {
         WEBM: "audio/webm",
         WEBV: "audio/webm"
     };
-
-    export const IMAGE = {
+    MimeTypes.IMAGE = {
         BMP: "image/bmp",
         GIF: "image/gif",
         ICO: "image/vnd.microsoft.icon",
@@ -135,8 +128,7 @@ export namespace MimeTypes {
         WEBP: "image/webp",
         PDF: "application/pdf"
     };
-
-    export const APPLICATION = {
+    MimeTypes.APPLICATION = {
         BIN: "application/octet-stream",
         CSS: "text/css",
         CSV: "text/csv",
@@ -167,9 +159,8 @@ export namespace MimeTypes {
         XML: "application/xml",
         ZIP: "application/zip",
         "7Z": "application/x-7z-compressed"
-    }
-
-    export const TEXT = {
+    };
+    MimeTypes.TEXT = {
         PLAIN: "text/plain",
         CSS: "text/css",
         CSV: "text/csv",
@@ -178,30 +169,11 @@ export namespace MimeTypes {
         JSON: "application/json",
         MJS: "text/javascript",
         TXT: "text/plain"
-    }
-}
-
-export namespace Network {
-    export type AnyPacket = { [key: string]: any };
-
-    export interface DefaultHeaders {
-        "Content-Type": string
-        "Authorization": string
-        "User-Agent": string
-        "Origin": string
-        "Host": string
-        "Accept": string
-    }
-    
-    export interface RequestOptions {
-        method: "GET" | "POST" | "PUT" | "DELETE" | "PATCH"
-        url: URL | string
-        headers?: DefaultHeaders | { [k: string]: string }
-        body?: any,
-        cache?: RequestCache
-    }
-
-    export function request(options: RequestOptions, cb?: (error: Response | null, data?: string, response?: Response) => void): Promise<{data: string, response: Response, error?: boolean }> {
+    };
+})(MimeTypes = exports.MimeTypes || (exports.MimeTypes = {}));
+var Network;
+(function (Network) {
+    function request(options, cb) {
         options.body = options.body || null;
         options.headers = options.headers || {
             "Content-Type": MimeTypes.APPLICATION.JSON,
@@ -210,12 +182,11 @@ export namespace Network {
         };
         options.url = options.url instanceof URL ? options.url.href : options.url;
         options.cache = options.cache || "default";
-
         return new Promise((resolve, reject) => {
             window.fetch(options.url instanceof URL ? options.url.href : options.url, {
                 "method": options.method,
                 "body": options.body,
-                "headers": options.headers as any,
+                "headers": options.headers,
                 "cache": options.cache
             }).then(response => {
                 if ((response.status >= 200) && (response.status <= 299)) {
@@ -225,7 +196,8 @@ export namespace Network {
                         }
                         resolve({ data, response });
                     });
-                } else {
+                }
+                else {
                     if (cb) {
                         return cb(response);
                     }
@@ -234,10 +206,12 @@ export namespace Network {
             });
         });
     }
-}
-
-export abstract class BasePacket {
-    public value(): { [key: string]: any } {
+    Network.request = request;
+})(Network = exports.Network || (exports.Network = {}));
+class BasePacket {
+    value() {
         return {};
     }
 }
+exports.BasePacket = BasePacket;
+//# sourceMappingURL=Network.js.map
