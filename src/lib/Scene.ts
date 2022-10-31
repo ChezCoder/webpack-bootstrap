@@ -13,9 +13,16 @@ export interface DrawOptions {
 }
 
 export abstract class Renderable<S extends Scene = Scene> {
+    private static id: number = 0;
+    
+    readonly id: number;
+
+    public enabled: boolean = true;
+
     protected scene: S;
 
     constructor(scene: S) {
+        this.id = Renderable.id++;
         this.scene = scene;
     }
 
@@ -33,6 +40,8 @@ export default abstract class Scene {
     readonly resource: ResourceManager;
     readonly persistResources: boolean;
 
+    public renderables: Renderable<Scene>[] = [];
+
     constructor(app: App, name: string, persistResources: boolean = true) {
         this.app = app;
         this.name = name;
@@ -44,6 +53,11 @@ export default abstract class Scene {
     public setup() {}
 
     public loop() {}
+
+    public addRenderable(renderable: Renderable): number {
+        this.renderables.push(renderable);
+        return renderable.id;
+    }
 
     public draw(options: DrawOptions | Renderable): void {
         if (options instanceof Renderable) {

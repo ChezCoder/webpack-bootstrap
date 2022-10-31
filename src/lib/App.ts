@@ -114,7 +114,14 @@ export default class App {
             this.cursor = "default";
         }
         
-        this._scenes.get(this._scene || "")?.loop();
+        const scene = this._scenes.get(this._scene || "");
+        
+        if (scene) {
+            scene.renderables.forEach(renderable => {
+                renderable.draw();
+            });
+        }
+
         this._lastFrameTimestamp = Date.now();
     }
 
