@@ -3,6 +3,7 @@ import Loopable from "./Loopable";
 export default class ChildList<T extends Loopable> {
     private _children: T[] = [];
 
+    // TODO better way to do this? Perhaps extending Array class?
     public at(...args: Parameters<T[]["at"]>) { return Array.prototype.at.bind(this._children)(...args); }
     public entries(...args: Parameters<T[]["entries"]>) { return Array.prototype.entries.bind(this._children)(...args); }
     public every(...args: Parameters<T[]["every"]>) { return Array.prototype.every.bind(this._children)(...args); }
