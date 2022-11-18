@@ -20,7 +20,7 @@
   },
   "name": "webpack-bootstrap",
   "description": "webpack canvas boostrap starter",
-  "version": "2.14.1",
+  "version": "3.0.0",
   "main": "",
   "directories": {
     "test": "tests"
