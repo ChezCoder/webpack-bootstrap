@@ -1,11 +1,12 @@
-type ResourceRawType = HTMLVideoElement | HTMLAudioElement | HTMLImageElement;
+type ResourceElementNames = "video" | "audio" | "img";
+type ResourceRawTypes = HTMLElementTagNameMap[ResourceElementNames];
 type ResourceTypes = ImageResource | AudioResource | VideoResource;
 
-abstract class RawResource<T extends ResourceRawType> {
+abstract class RawResource<T extends ResourceRawTypes> {
     readonly source: string;
-    
-    protected _elementName: string = "";
-    protected _data?: T;
+    protected readonly elementName!: ResourceElementNames;
+
+    protected _data!: T;
     protected _loaded: boolean = false;
 
     constructor(source: URL | string, data?: T) {
@@ -21,7 +22,7 @@ abstract class RawResource<T extends ResourceRawType> {
         return new Promise<void>((res, rej) => {
             if (this.loaded) return res();
 
-            this._data = document.createElement(this._elementName) as T;
+            this._data = document.createElement(this.elementName) as T;
             
             this._data!.onload = () => {
                 this._loaded = true;
@@ -51,19 +52,19 @@ export namespace Resource {
 }
 
 export class ImageResource extends RawResource<HTMLImageElement> {
-    protected _elementName: string = "img";
+    protected elementName: ResourceElementNames = "img";
 
     public isImage(): this is ImageResource { return true; }
 }
 
 export class AudioResource extends RawResource<HTMLAudioElement> {
-    protected _elementName: string = "audio";
+    protected elementName: ResourceElementNames = "audio";
 
     public isAudio(): this is AudioResource { return true; }
 }
 
 export class VideoResource extends RawResource<HTMLVideoElement> {
-    protected _elementName: string = "video";
+    protected elementName: ResourceElementNames = "video";
     
     public isVideo(): this is VideoResource { return true; }
 }
@@ -71,32 +72,13 @@ export class VideoResource extends RawResource<HTMLVideoElement> {
 export class ResourceManager {
     private _resourceMap: Map<string, ResourceTypes> = new Map();
 
-    public overwrite(name: string, resource: ResourceTypes): Promise<boolean> {
-        
-        return new Promise(res => {
-            if (!this._resourceMap.has(name)) {
-                this._resourceMap.set(name, resource);
+    public save(name: string, resource: ResourceTypes): Promise<void> {
+        return new Promise((res, rej) => {
+            this._resourceMap.set(name, resource);
 
-                if (!resource.loaded) resource.load()
-                    .then(() => res(true))
-                    .catch(() => res(false));
-                return;
-            }
-            return res(false);
-        });
-    }
-
-    public save(name: string, resource: ResourceTypes): Promise<boolean> {
-        return new Promise(res => {
-            if (!this._resourceMap.has(name)) {
-                this._resourceMap.set(name, resource);
-
-                if (!resource.loaded) resource.load()
-                    .then(() => res(true))
-                    .catch(() => res(false));
-                return;
-            }
-            return res(false);
+            if (!resource.loaded) resource.load()
+                .then(() => res())
+                .catch(() => rej(new Error("Failed to load resource")));
         });
     }
 

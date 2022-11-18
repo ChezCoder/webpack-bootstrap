@@ -1,170 +1,272 @@
-import WSNetworkDriver from "./Network";
+import GameObject from "./GameObject";
+import NetworkWebSocket from "./Network";
+import { ResourceManager } from "./Resource";
 import Scene from "./Scene";
-import { InputDriver } from "./UserInput";
+import { Input } from "./UserInput";
 import { Vector2 } from "./Util";
 
-export type CursorOptions = "alias" |
-    "all-scroll" |
-    "auto" |
-    "cell" |
-    "col-resize" |
-    "context-menu" |
-    "copy" |
-    "crosshair" |
-    "default" |
-    "e-resize" |
-    "ew-resize" |
-    "grab" |
-    "grabbing" |
-    "help" |
-    "move" |
-    "n-resize" |
-    "ne-resize" |
-    "nesw-resize" |
-    "ns-resize" |
-    "nw-resize" |
-    "nwse-resize" |
-    "no-drop" |
-    "none" |
-    "not-allowed" |
-    "pointer" |
-    "progress" |
-    "row-resize" |
-    "s-resize" |
-    "se-resize" |
-    "sw-resize" |
-    "text" |
-    "w-resize" |
-    "wait" |
-    "zoom-in" |
-    "zoom-out";
+export interface DrawOptions {
+    draw: (ctx: CanvasRenderingContext2D) => void
+    origin?: Vector2
+    strokeStyle?: string | CanvasGradient | CanvasPattern
+    fillStyle?: string | CanvasGradient | CanvasPattern
+    lineWidth?: number
+    alpha?: number
+    rotation?: number
+    scale?: Vector2
+}
 
-export default class App {
-    readonly canvas: HTMLCanvasElement;
-    readonly ctx: CanvasRenderingContext2D;
+export enum Cursor {
+    ALIAS = "alias",
+    ALL_SCROLL = "all-scroll",
+    AUTO = "auto",
+    CELL = "cell",
+    COL_RESIZE = "col-resize",
+    CONTEXT_MENU = "context-menu",
+    COPY = "copy",
+    CROSSHAIR = "crosshair",
+    DEFAULT = "default",
+    E_RESIZE = "e-resize",
+    EW_RESIZE = "ew-resize",
+    GRAB = "grab",
+    GRABBING = "grabbing",
+    HELP = "help",
+    MOVE = "move",
+    N_RESIZE = "n-resize",
+    NE_RESIZE = "ne-resize",
+    NESW_RESIZE = "nesw-resize",
+    NS_RESIZE = "ns-resize",
+    NW_RESIZE = "nw-resize",
+    NWSE_RESIZE = "nwse-resize",
+    NO_DROP = "no-drop",
+    NONE = "none",
+    NOT_ALLOWED = "not-allowed",
+    POINTER = "pointer",
+    PROGRESS = "progress",
+    ROW_RESIZE = "row-resize",
+    S_RESIZE = "s-resize",
+    SE_RESIZE = "se-resize",
+    SW_RESIZE = "sw-resize",
+    TEXT = "text",
+    W_RESIZE = "w-resize",
+    WAIT = "wait",
+    ZOOM_IN = "zoom-in",
+    ZOOM_OUT = "zoom-out"
+}
 
-    public network: WSNetworkDriver;
-    public input: InputDriver;
-    public setup: () => void = () => {};
-    public loop: () => void = () => {};
-    public clear: boolean = true;
-    public storage: Map<String, any> = new Map();
+// TODO change program flow
+/**
+ * TODO
+ * Scenes are now renderable objects
+ * You push any renderable objects to the global app class
+ * These get rendered,
+ * Scenes may only be pushed to the global app class
+ * Scenes may not be pushed to scenes
+ * Scenes may be enabled or disabled, repositioned, etc
+ * Renderable objects may be pushed to scenes
+ */
+
+export namespace App {
+    export const canvas: HTMLCanvasElement = document.createElement("canvas");
+    export const ctx: CanvasRenderingContext2D = canvas.getContext("2d")!;
+
+    export const network: NetworkWebSocket = new NetworkWebSocket();
+    export const input: Input = new Input();
+    export const storage: Map<String, any> = new Map();
+    export const resource: ResourceManager = new ResourceManager();
+    export const clear: boolean = true;
+    export const scenes: Scene[] = [];
+
+    /**
+     * @deprecated
+     */
+    export let cameraOffset: Vector2;
+    /**
+     * @deprecated
+     */
+    export let zoom: number = 1;
+    export let targetFramerate: number = 60;
+
+    export let loop: () => void = () => {};
     
-    public cameraOffset: Vector2 = new Vector2(0, 0);
-    public zoom: number = 1;
-    public targetFramerate: number = 60;
-    
-    private _lastFrameTimestamp: number = Date.now();
-    private _width!: number;
-    private _height!: number;
-    private _scene?: string;
-    private _scenes: Map<string, Scene>;
+    let _lastFrameTimestamp: number = Date.now();
+    let _width: number = window.innerWidth;
+    let _height: number = window.innerHeight;
+    /**
+     * @deprecated
+     */
+    let _scene: string;
 
-    constructor(width: number, height: number) {
-        this.canvas = document.createElement("canvas");
-        this.ctx = this.canvas.getContext("2d")!;
+    let _initialized: boolean = false;
 
-        this._scenes = new Map();
-        this.network = new WSNetworkDriver();
-        this.input = new InputDriver(this);
+    export function init() {
+        if (!_initialized) {
+            _initialized = true;
+            document.body.appendChild(canvas);
+            
+            canvas.width = _width;
+            canvas.height = _height;
 
-        this.width = width;
-        this.height = height;
-
-        document.body.appendChild(this.canvas);
-
-        this._setup();
+            // TODO remove this once completely removed
+            cameraOffset = new Vector2(0, 0);
+            
+            raf();
+        }
     }
 
-    public getVisualPosition(position: Vector2): Vector2 {
+    /**
+     * TODO
+     * @deprecated
+     * Use Scene#getVisualPosition instead
+     */    
+    export function getVisualPosition(position: Vector2): Vector2 {
         const result = position.clone();
-        result.add(this.cameraOffset);
-        result.x *= this.zoom;
-        result.y *= this.zoom;
+        result.add(cameraOffset);
+        result.x *= zoom;
+        result.y *= zoom;
         return result;
     }
 
-    public addScene(scene: Scene) {
-        this._scenes.set(scene.name, scene);
+    export function broadcast<D = string>(data: D) {
+        scenes.forEach(s => {
+            s.onmessage(data);
+            s.broadcastToChildren(data);
+        });
     }
 
-    public enableScene(name: string) {
-        const scene = this._scenes.get(name);
+    export function draw(object: DrawOptions): void {
+        ctx.save();
+        ctx.beginPath();
+
+        if (object.origin) {
+            const offset = object.origin;
+            ctx.translate(offset.x, offset.y);
+        }
+
+        ctx.strokeStyle = object.strokeStyle || "#000000";
+        ctx.fillStyle = object.fillStyle || "#000000";
+        ctx.globalAlpha = object.alpha === 0 ? 0 : object.alpha || 1;
+        ctx.lineWidth = object.lineWidth === 0 ? 0 : object.lineWidth || 1;
+
+        if (object.rotation)
+            ctx.rotate(object.rotation);
+        
+        if (object.scale)
+            ctx.scale(object.scale.x, object.scale.y)
+
+        object.draw(ctx);
+
+        if (object.strokeStyle)
+            ctx.stroke();
+        
+        if (object.fillStyle)
+            ctx.fill();
+
+        ctx.closePath();
+        ctx.restore();
+    }
+
+    export function addScene(scene: Scene) {
+        scene.setup();
+        scenes.push(scene);
+    }
+
+    /**
+     * @deprecated
+     * Use Scene#enabled instead
+     */
+    export function enableScene(name: string) {
+        const scene = scenes.find(s => s.name == name);
         if (scene) {
-            if (scene.persistResources) scene.resource.clear();
-            this._scene = name;
+            _scene = name;
             scene.setup();
         } else {
             throw new ReferenceError("No registered scene with that name");
         }
     }
-    
-    private _setup() {
-        this.setup.apply(this);
-        this.raf();
-    }
 
-    private raf() {
-        window.requestAnimationFrame(this.raf.bind(this));
-        this.input.step();
-        this.loop.apply(this);
+    function raf() {
+        window.requestAnimationFrame(raf);
         
-        if (this.clear) {
-            this.ctx.clearRect(0, 0, this._width, this._height);
-            this.cursor = "default";
+        if (clear) {
+            ctx.clearRect(0, 0, _width, _height);
+            setCursor("default");
         }
         
-        const scene = this._scenes.get(this._scene || "");
+        input.step();
+        loop();
         
-        if (scene) {
-            scene.renderables.forEach(renderable => {
-                if (renderable.enabled) renderable.draw();
-            });
-            scene.loop();
+        const loopChildren = (gameObject: GameObject) => {
+            if (gameObject.enabled) {
+                gameObject.loop();
+                gameObject.render();
+                gameObject.transform.loop();
+                gameObject.components.forEach(c => c.enabled ? c.loop() : null);
+                gameObject.children.forEach(g => {
+                    g.parent = gameObject;
+                    loopChildren(g);
+                });
+            }
         }
 
-        this._lastFrameTimestamp = Date.now();
+        scenes.forEach(loopChildren);
+
+        _lastFrameTimestamp = Date.now();
     }
 
-    get currentScene(): Scene {
-        return this._scenes.get(this._scene || "")!;
+    /**
+     * TODO
+     * @deprecated
+     */
+    export function getCurrentScene(): Scene {
+        return scenes.find(s => s.name == (_scene || ""))!;
     }
 
-    get width() {
-        return this._width;
+    export function getWidth() {
+        return _width;
     }
 
-    set width(width: number) {
-        this._width = width;
-        this.canvas.width = width;
+    export function setWidth(width: number) {
+        _width = width;
+        canvas.width = width;
     }
 
-    get height() {
-        return this._height;
+    export function getHeight() {
+        return _height;
     }
 
-    set height(height: number) {
-        this._height = height;
-        this.canvas.height = height;
+    export function setHeight(height: number) {
+        _height = height;
+        canvas.height = height;
     }
 
-    get center(): Vector2 {
-        return new Vector2(this.width / 2, this.height / 2);
+    export function center(): Vector2 {
+        return new Vector2(_width / 2, _height / 2);
     }
 
-    get deltaTime(): number {
-        return (Date.now() - this._lastFrameTimestamp) / (1000 / this.targetFramerate);
+    export function deltaTime(): number {
+        return (Date.now() - _lastFrameTimestamp) / (1000 / targetFramerate);
     }
 
-    set cursor(cursor: CursorOptions | URL) {
+    /**
+     * TODO
+     * @deprecate
+     * Use Scene#cursor instead
+     */
+    export function setCursor(cursor: Cursor | string | URL) {
         if (cursor instanceof URL) {
-            this.canvas.style.cursor = `url("${cursor.href}")`;
+            canvas.style.cursor = `url("${cursor.href}")`;
         } else {
-            this.canvas.style.cursor = cursor;
+            canvas.style.cursor = cursor;
         }
     }
 
-    get cursor(): CursorOptions | URL {
-        return this.canvas.style.cursor as CursorOptions | URL;
+    /**
+     * TODO
+     * @deprecate
+     * Use Scene#cursor instead
+     */
+    export function getCursor(): Cursor | string | URL {
+        return canvas.style.cursor as string | URL;
     }
 }

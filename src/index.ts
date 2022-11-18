@@ -1,27 +1,32 @@
-import App from "./lib/App";
-import demo from "./Scenes/demo";
+import { App } from "./lib/App";
+import {demo} from "./Scenes/demo";
 import demo2 from "./Scenes/demo2";
 
-let app: App;
-
 $(async function() {
-    app = new App(window.innerWidth, window.innerHeight);
+    const a = new demo("demo");
+    a.transform.scale.x = 1.5;
+    App.addScene(a);
 
-    app.addScene(new demo(app, "demo"));
-    app.addScene(new demo2(app, "demo2"));
-    
-    app.enableScene("demo");
+    const b = new demo2("demo2");
+    b.transform.position.x = 100;
+    App.addScene(b);
 
-    app.loop = function() {
-        if (app.input.keyPress == "1") {
-            app.enableScene("demo");
-        } else if (app.input.keyPress == "2") {
-            app.enableScene("demo2");
+    App.loop = function() {
+        if (App.input.keyPress == "1") {
+            App.scenes[0].enabled = true;
+            App.scenes[1].enabled = false;
+        } else if (App.input.keyPress == "2") {
+            App.scenes[1].enabled = true;
+            App.scenes[0].enabled = false;
         }
     }
+
+    App.init();
+
+    (window as any)["app"] = App;
 });
 
 $(window).on("resize", function() {
-    app.width = window.innerWidth;
-    app.height = window.innerHeight;
+    App.setWidth(window.innerWidth);
+    App.setWidth(window.innerHeight);
 });

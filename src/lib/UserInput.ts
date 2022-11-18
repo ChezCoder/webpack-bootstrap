@@ -1,48 +1,48 @@
-import App from "./App";
 import { Vector2 } from "./Util";
 
-export class InputDriver {
-    public mousePos: Vector2 = new Vector2(0, 0);
+export class Input {
+    public mousePos!: Vector2;
     public mouseDown: boolean = false;
     public mouseClick: boolean = false;
     public keysDown: string[] = [];
     public keyPress: string = "";
-    public app: App;
     
     private _mouseClickFrames = 0;
     private _keyPressFrames = 0;
     private _keyPressEnable = true;
     private _lastKeyPress: string = "";
 
-    constructor(app: App) {
-        this.app = app;
-
+    constructor() {
         const driver = this;
 
-        $(window).on("mousemove", function(e) {
+        window.addEventListener("load", function() {
+            driver.mousePos = new Vector2(0, 0);
+        });
+
+        window.addEventListener("mousemove", function(e) {
             driver.mousePos.x = e.clientX;
             driver.mousePos.y = e.clientY;
         });
         
-        $(window).on("mousedown", function() {
+        window.addEventListener("mousedown", function() {
             driver.mouseDown = true;
             driver._mouseClickFrames = 1;
         });
         
-        $(window).on("mouseup", function() {
+        window.addEventListener("mouseup", function() {
             driver.mouseDown = false;
         });
         
-        $(window).on("keydown", function(e) {
-            !driver.keysDown.includes(e.key) ? driver.keysDown.push(e.key) : "";
+        window.addEventListener("keydown", function(e) {
+            if (!driver.keysDown.includes(e.key)) driver.keysDown.push(e.key);
             driver.keyPress = (driver._keyPressEnable || (e.key != driver._lastKeyPress)) ? e.key : "";
             driver._lastKeyPress = e.key;
             driver._keyPressFrames = 1;
             driver._keyPressEnable = false;
         });
         
-        $(window).on("keyup", function(e) {
-            driver.keysDown.includes(e.key) ? driver.keysDown.splice(driver.keysDown.indexOf(e.key), 1) : "";
+        window.addEventListener("keyup", function(e) {
+            if (driver.keysDown.includes(e.key)) driver.keysDown.splice(driver.keysDown.indexOf(e.key), 1);
             driver._keyPressEnable = true;
         });
     }

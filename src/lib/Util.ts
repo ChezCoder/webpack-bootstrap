@@ -1,4 +1,4 @@
-import Scene, { DrawOptions } from "./Scene";
+import { App, DrawOptions } from "./App";
 
 export type WeightMap = {[key: string]: number};
 
@@ -10,6 +10,11 @@ export interface SimpleVector2 {
 export interface SimpleForce {
     magnitude: number
     radians: number
+}
+
+export interface Dimension2 {
+	width: number;
+	height: number;
 }
 
 /**
@@ -73,6 +78,16 @@ export class Vector2 {
     public equals(other: Vector2) {
         return this.x == other.x && this.y == other.y;
     }
+
+	public setX(x: number): this {
+		this.x = x;
+		return this;
+	}
+
+	public setY(y: number): this {
+		this.y = y;
+		return this;
+	}
 }
 
 /**
@@ -128,6 +143,21 @@ export class Force {
         return this.radians == other.radians && this.magnitude == other.magnitude;
     }
 
+	public setRadians(radians: number): this {
+		this.radians = radians;
+		return this;
+	}
+
+	public setDegrees(degrees: number): this {
+		this.degrees = degrees;
+		return this;
+	}
+
+	public setMagnitude(magnitude: number): this {
+		this.magnitude = magnitude;
+		return this;
+	}
+
     public static add(force1: Force, force2: Force): Force {
         return Vector2.add(force1.toVector(), force2.toVector()).toForce(Vector2.ORIGIN);
     }
@@ -146,6 +176,22 @@ export namespace Angle {
     export function toDegrees(radians: number) {
         return radians * (180 / Math.PI);
     }
+}
+
+export class Raycast {
+	public readonly position: Vector2;
+	public readonly rotation: number;
+
+	constructor(position: Vector2, rotation: number) {
+		this.position = position;
+		this.rotation = rotation;
+	}
+
+	/**
+	 * @deprecated
+	 * Use `MathUtils.isLineIntersectingLine()` instead.
+	 */
+	public cast(): void {}
 }
 
 export namespace Random {
@@ -175,27 +221,32 @@ export namespace Random {
     }
 }
 
-export namespace TextHelper {
-    export function measureTextMetrics(ctx: CanvasRenderingContext2D, text: string, font: string): TextMetrics {
-        const oldFont = ctx.font;
-        ctx.font = font;
-        const textm = ctx.measureText(text);
-        ctx.font = oldFont;
-        return textm;
+export namespace TextUtils {
+    export function measureTextMetrics(text: string, font: string): TextMetrics {
+        const oldFont = App.ctx.font;
+        App.ctx.font = font;
+
+		// todo make no util function use App namespace
+
+        const textm = App.ctx.measureText(text);
+        App.ctx.font = oldFont;
+        
+		return textm;
     }
     
-    export function measureTextHeight(ctx: CanvasRenderingContext2D, text: string, font: string): number {
-        const metrics = measureTextMetrics(ctx, text, font);
-        return metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent;
+    export function measureTextHeight(text: string, font: string): number {
+        const metrics = measureTextMetrics(text, font);
+        return Math.abs(metrics.actualBoundingBoxAscent) + Math.abs(metrics.actualBoundingBoxDescent);
     }
     
-    export function measureTextWidth(ctx: CanvasRenderingContext2D, text: string, font: string): number {
-        return measureTextMetrics(ctx, text, font).width;
+    export function measureTextWidth(text: string, font: string): number {
+		const metrics = measureTextMetrics(text, font);
+        return Math.abs(metrics.actualBoundingBoxLeft) + Math.abs(metrics.actualBoundingBoxRight);
     }
 
-    export function writeCenteredTextAt(scene: Scene, text: string, options: Partial<DrawOptions>, font: string = scene.app.zoom * 30 + "px Arial") {
-        const width = measureTextWidth(scene.app.ctx, text, font);
-        const height = measureTextHeight(scene.app.ctx, text, font);
+    export function writeCenteredTextAt(text: string, options: Partial<DrawOptions>, font = 30 + "px Arial") {
+        const width = measureTextWidth(text, font);
+        const height = measureTextHeight(text, font);
 
         options.draw = (ctx: CanvasRenderingContext2D) => {
             ctx.font = font;
@@ -203,39 +254,10 @@ export namespace TextHelper {
             if (options.fillStyle) ctx.fillText(text, -width / 2, height / 2);
         };
 
-        scene.draw(options as DrawOptions);
-    }
-}
-
-export namespace Utils {
-    export function rbgToHex(red: number, blue: number, green: number): string {
-        return `#${prefixSpacing(red.toString(16), "0", 2)}${prefixSpacing(blue.toString(16), "0", 2)}${prefixSpacing(green.toString(16), "0", 2)}`;
+        App.draw(options as DrawOptions);
     }
 
-    export function rbgaToHex(red: number, blue: number, green: number, alpha: number): string {
-        return `#${prefixSpacing(red.toString(16), "0", 2)}${prefixSpacing(blue.toString(16), "0", 2)}${prefixSpacing(green.toString(16), "0", 2)}${prefixSpacing((Math.round(255 * alpha)).toString(16), "0", 2)}`;
-    }
-
-    export function clamp(n: number, min: number = 0, max: number = 1): number {
-        return Math.max(min, Math.min(n, max));
-    }
-
-    export function wrapClamp(n: number, min: number = 0, max: number = 1): number {
-        const clamped = clamp(n, min, max);
-        min--;
-        max++;
-
-        if (clamped === n) {
-            return clamped;
-        } else {
-            const difference = clamped - n;
-            if (difference < 0)
-                return wrapClamp(min - difference, min, max);
-            return wrapClamp(max - difference, min, max);
-        }
-    }
-
-    export function prefixSpacing(text: string, prefix: string, length: number): string {
+	export function prefixSpacing(text: string, prefix: string, length: number): string {
         if (text.length >= length) return text;
         return prefix.repeat(length - text.length) + text;
     }
@@ -243,6 +265,46 @@ export namespace Utils {
     export function suffixSpacing(text: string, suffix: string, length: number): string {
         if (text.length >= length) return text;
         return text + suffix.repeat(length - text.length);
+    }
+
+	export function wrapText(text: string, maxWidth: number, font: string): string[] {
+		const words = text.split(" ");
+		let lines = [];
+		let line = words[0];
+
+		for (var i = 1; i < words.length; i++) {
+			const word = words[i];
+			const width = measureTextWidth(text, font);
+
+			if (width < maxWidth) {
+				line += " " + word;
+			} else {
+				lines.push(line);
+				line = word;
+			}
+		}
+		
+		lines.push(line);
+		return lines;
+	}
+}
+
+export namespace Utils {
+	/**
+	 * @deprecated
+	 */
+	 export function setMouseCursor(cursorSource: string = "default") {
+        document.body.style.cursor = cursorSource || "default";
+    }
+}
+
+export namespace MathUtils {
+    export function clamp(n: number, min: number = 0, max: number = 1): number {
+        return Math.max(min, Math.min(n, max));
+    }
+
+    export function wrapClamp(n: number, min: number = 0, max: number = 1): number {
+        return (n % ((max + 1) + min)) - min;
     }
 
     export function between(n: number, min: number, max: number): boolean {
@@ -263,23 +325,23 @@ export namespace Utils {
         let a = lp1.x,
             b = lp1.y,
             c = lp2.x,
-            d = lp2.y,
-            p = lp3.x,
+            d = lp2.y;
+		let p = lp3.x,
             q = lp3.y,
             r = lp4.x,
             s = lp4.y;
     
         var det, gamma, lambda;
         det = (c - a) * (s - q) - (r - p) * (d - b);
+
         if (det === 0) {
             return false;
-        } else {
-            lambda = ((s - q) * (r - a) + (p - r) * (s - b)) / det;
-            gamma = ((b - d) * (r - a) + (c - a) * (s - b)) / det;
-            return (0 < lambda && lambda < 1) && (0 < gamma && gamma < 1);
-        }
-    
-    }
+		}
+
+		lambda = ((s - q) * (r - a) + (p - r) * (s - b)) / det;
+		gamma = ((b - d) * (r - a) + (c - a) * (s - b)) / det;
+		return (0 < lambda && lambda < 1) && (0 < gamma && gamma < 1);
+	}
 
     export function isPointInRectangle(point: Vector2, rectPos: Vector2, width: number, height: number): boolean {
         return between(point.x, rectPos.x, rectPos.x + width) && between(point.y, rectPos.y, rectPos.y + height);
@@ -348,12 +410,8 @@ export namespace Utils {
         return isPointInCircle(nearest, circle, radius) && pLen2 <= dLen2 && (px * dx + py * dy) >= 0;
     }
     
-    export function setMouseCursor(cursorSource: string = "default") {
-        document.body.style.cursor = cursorSource || "default";
-    }
-    
-    export function safeDivide(x: number, y: number): number {
-        return isFinite(x / y) ? x / y : 0;
+    export function safeDivide(a: number, b: number): number {
+        return isFinite(a / b) ? a / b : 0;
     }
 }
 
@@ -378,7 +436,7 @@ export namespace LerpUtils {
 
         public value(currentTime: number = Date.now()): number {
             if (this.clamped)
-                return LerpUtils.lerp(this.from, this.to, this.lerpFunction(Utils.clamp((currentTime - this.startTime) / this.duration)));
+                return LerpUtils.lerp(this.from, this.to, this.lerpFunction(MathUtils.clamp((currentTime - this.startTime) / this.duration)));
             else
                 return LerpUtils.lerp(this.from, this.to, this.lerpFunction((currentTime - this.startTime) / this.duration));
         }
@@ -407,6 +465,65 @@ export namespace LerpUtils {
 }
 
 export namespace Color {
+	export function rbgToHex(red: number, blue: number, green: number): string {
+        return `#${TextUtils.prefixSpacing(red.toString(16), "0", 2)}${TextUtils.prefixSpacing(blue.toString(16), "0", 2)}${TextUtils.prefixSpacing(green.toString(16), "0", 2)}`;
+    }
+
+    export function rbgaToHex(red: number, blue: number, green: number, alpha: number): string {
+        return `#${TextUtils.prefixSpacing(red.toString(16), "0", 2)}${TextUtils.prefixSpacing(blue.toString(16), "0", 2)}${TextUtils.prefixSpacing(green.toString(16), "0", 2)}${TextUtils.prefixSpacing((Math.round(255 * alpha)).toString(16), "0", 2)}`;
+    }
+
+	export class RGB {
+        public red: number;
+        public green: number;
+        public blue: number;
+
+        constructor(red: number, green: number, blue: number) {
+            this.red = red;
+            this.green = green;
+            this.blue = blue;
+        }
+
+        public toHex(): Hex {
+            const space = (str: string) => TextUtils.prefixSpacing(str, "0", 2);
+            return new Hex(`#${space(this.red.toString(16))}${space(this.green.toString(16))}${space(this.blue.toString(16))}`);
+        }
+
+        public toString(): string {
+            return `rgb(${this.red}, ${this.green}, ${this.blue})`;
+        }
+
+        public clone(): RGB {
+            return new RGB(this.red, this.green, this.blue);
+        }
+    }
+
+    export class Hex {
+        private _value: number;
+
+        constructor(hexadecimal: number | string) {
+            if (Number.isInteger(hexadecimal)) {
+                this._value = +hexadecimal;
+            } else {
+                this._value = parseInt(hexadecimal.toString().substring(1), 16);
+            }
+        }
+
+
+        public toRGB(): RGB {
+            const stringified = this.toString();
+            return new RGB(parseInt(stringified.substring(1, 3), 16), parseInt(stringified.substring(3, 5), 16), parseInt(stringified.substring(5, 7), 16));
+        }
+
+        public toString(): string {
+            return `#${TextUtils.prefixSpacing(this._value.toString(16), "0", 6)}`;
+        }
+
+        public clone(): Hex {
+            return new Hex(this.toString());
+        }
+    }
+	
     export namespace Enum {
         export const ABBEY: "#4c4f56" = "#4c4f56";
 		export const ABSOLUTE_ZERO: "#0048ba" = "#0048ba";
@@ -2738,56 +2855,5 @@ export namespace Color {
 		export const ZORBA: "#a59b91" = "#a59b91";
 		export const ZUCCINI: "#044022" = "#044022";
 		export const ZUMTHOR: "#edf6ff" = "#edf6ff";
-    }
-
-    export class RGB {
-        public red: number;
-        public green: number;
-        public blue: number;
-
-        constructor(red: number, green: number, blue: number) {
-            this.red = red;
-            this.green = green;
-            this.blue = blue;
-        }
-
-        public toHex(): Hex {
-            const space = (str: string) => Utils.prefixSpacing(str, "0", 2);
-            return new Hex(`#${space(this.red.toString(16))}${space(this.green.toString(16))}${space(this.blue.toString(16))}`);
-        }
-
-        public toString(): string {
-            return `rgb(${this.red}, ${this.green}, ${this.blue})`;
-        }
-
-        public clone(): RGB {
-            return new RGB(this.red, this.green, this.blue);
-        }
-    }
-
-    export class Hex {
-        private _value: number;
-
-        constructor(hexadecimal: number | string) {
-            if (Number.isInteger(hexadecimal)) {
-                this._value = +hexadecimal;
-            } else {
-                this._value = parseInt(hexadecimal.toString().substring(1), 16);
-            }
-        }
-
-
-        public toRGB(): RGB {
-            const stringified = this.toString();
-            return new RGB(parseInt(stringified.substring(1, 3), 16), parseInt(stringified.substring(3, 5), 16), parseInt(stringified.substring(5, 7), 16));
-        }
-
-        public toString(): string {
-            return `#${Utils.prefixSpacing(this._value.toString(16), "0", 6)}`;
-        }
-
-        public clone(): Hex {
-            return new Hex(this.toString());
-        }
     }
 }

@@ -1,4 +1,4 @@
-export default class WSNetworkDriver {
+export default class NetworkWebSocket {
     public url?: string;
     public onOpen: () => void = () => {};
     public onMessage: (message: string) => void = () => {};
