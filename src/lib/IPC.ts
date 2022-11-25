@@ -1,11 +1,11 @@
-interface IPCMessage<T> {
+export interface IPCMessage<T> {
     label: string
     message: T
 }
 
 type IPCHandler<T> = (data: IPCMessage<T>) => void;
 
-namespace IPC {
+export namespace IPC {
     const handlers: Map<string, IPCHandler<any>[]> = new Map();
 
     /**
