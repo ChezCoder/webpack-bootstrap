@@ -28,7 +28,7 @@ export namespace IPC {
      * @param data Data to send
      * @returns
      */
-    export function send(label: string, data: any) {
+    export function send(label: string, data: any = null) {
         if (!handlers.has(label)) return;
 
         handlers.get(label)?.forEach(handler => handler(data));
