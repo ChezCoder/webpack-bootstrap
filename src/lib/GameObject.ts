@@ -25,15 +25,7 @@ export default abstract class GameObject extends Loopable {
         this.parent = parent;
     }
 
-    public readonly broadcastToChildren = <D = string>(data: D) => {
-        this.children.forEach(g => {
-            g.onmessage(data);
-            g.broadcastToChildren<D>(data);
-        });
-    }
-
     public setup(): void {};
     public loop(): void {};
     public render(): void {};
-    public onmessage(data: any): void { void data };
 }

@@ -127,13 +127,6 @@ export namespace App {
         return result;
     }
 
-    export function broadcast<D = string>(data: D) {
-        scenes.forEach(s => {
-            s.onmessage(data);
-            s.broadcastToChildren(data);
-        });
-    }
-
     export function draw(object: DrawOptions): void {
         ctx.save();
         ctx.beginPath();
