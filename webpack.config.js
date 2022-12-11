@@ -27,7 +27,11 @@ const config = {
     },
     devtool: "source-map",
     resolve: {
-        extensions: [".ts", ".js"]
+        extensions: [".ts", ".js"],
+        fallback: {
+            "fs": false,
+            "path": false
+        }
     },
     module: {
         rules: [
