@@ -85,7 +85,6 @@ export namespace App {
      * @deprecated
      */
     export let zoom: number = 1;
-    export let targetFramerate: number = 60;
 
     export let loop: () => void = () => {};
     
@@ -238,7 +237,7 @@ export namespace App {
     }
 
     export function deltaTime(): number {
-        return (Date.now() - _lastFrameTimestamp) / (1000 / targetFramerate);
+        return (Date.now() - _lastFrameTimestamp) / 1000;
     }
 
     /**
